@@ -30,46 +30,34 @@
   <!-- HERO -->
   <main id="top">
     <section class="hero" id="demo">
-      <div class="hero-grid">
-        <!-- LEFT: copy -->
-        <div class="hero-copy">
-          <p class="eyebrow">Setswana voice agents · built in Botswana</p>
-          <h1 class="hero-title">Voice AI for<br /><span class="sector" id="sector">banking</span><span class="sector" id="sectorDot">.</span></h1>
-          <p class="hero-sub">
-            Natural, code-switched Setswana &amp; English — the way Batswana actually
-            talk. Browse the voices, tap the orb to listen.
-          </p>
-          <div class="hero-actions">
-            <a href="#demo" class="btn btn-primary btn-lg">Book a demo</a>
-            <a href="#product" class="btn btn-ghost btn-lg">See how it works</a>
+      <div class="hero-bg" aria-hidden="true">
+        <span class="blob b1"></span>
+        <span class="blob b2"></span>
+      </div>
+
+      <div class="hero-inner">
+        <h1 class="hero-title">Voice for <span class="sector" id="sector">banking</span></h1>
+
+        <div class="carousel">
+          <button class="stage-arrow" id="prev" aria-label="Previous voice">‹</button>
+          <div class="orb-track">
+            <div class="orb-peek left" id="peekPrev" aria-hidden="true"></div>
+            <button class="orb" id="orb" aria-label="Tap to hear this voice">
+              <canvas id="orbCanvas" width="640" height="640"></canvas>
+              <span class="orb-hint" id="orbHint">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" fill="currentColor"/>
+                </svg>
+                <em>Tap to listen</em>
+              </span>
+            </button>
+            <div class="orb-peek right" id="peekNext" aria-hidden="true"></div>
           </div>
-          <p class="hero-stat"><strong>2,000+</strong> Setswana clips already training V AI</p>
+          <button class="stage-arrow" id="next" aria-label="Next voice">›</button>
         </div>
 
-        <!-- RIGHT: browsable voice carousel -->
-        <div class="stage">
-          <div class="stage-row">
-            <button class="stage-arrow" id="prev" aria-label="Previous voice">‹</button>
-            <div class="stage-panel" id="stagePanel">
-              <button class="orb" id="orb" aria-label="Tap to hear this voice">
-                <canvas id="orbCanvas" width="640" height="640"></canvas>
-                <span class="orb-hint" id="orbHint">
-                  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                    <path d="M8 5v14l11-7z" fill="currentColor"/>
-                  </svg>
-                  <em>Tap to listen</em>
-                </span>
-              </button>
-              <div class="stage-label">
-                <span class="stage-kicker">V AI</span>
-                <span class="stage-title" id="stageTitle">Voice for banking</span>
-              </div>
-            </div>
-            <button class="stage-arrow" id="next" aria-label="Next voice">›</button>
-          </div>
-          <div class="dots" id="dots" aria-hidden="true"></div>
-          <p class="orb-status" id="orbStatus">Tap the orb to hear this voice</p>
-        </div>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+        <p class="orb-status" id="orbStatus">Tap the orb to listen</p>
       </div>
 
       <audio id="heroVoice" preload="none" src="./assets/hero-voice.mp3"></audio>
