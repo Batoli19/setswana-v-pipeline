@@ -36,28 +36,34 @@
       </div>
 
       <div class="hero-inner">
-        <h1 class="hero-title">Voice for <span class="sector" id="sector">banking</span></h1>
-
-        <div class="carousel">
-          <button class="stage-arrow" id="prev" aria-label="Previous voice">‹</button>
-          <div class="orb-track">
-            <div class="orb-peek left" id="peekPrev" aria-hidden="true"></div>
-            <button class="orb" id="orb" aria-label="Tap to hear this voice">
-              <canvas id="orbCanvas" width="640" height="640"></canvas>
-              <span class="orb-hint" id="orbHint">
-                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                  <path d="M8 5v14l11-7z" fill="currentColor"/>
-                </svg>
-                <em>Tap to listen</em>
-              </span>
-            </button>
-            <div class="orb-peek right" id="peekNext" aria-hidden="true"></div>
-          </div>
-          <button class="stage-arrow" id="next" aria-label="Next voice">›</button>
+        <!-- LEFT: minimal copy -->
+        <div class="hero-copy">
+          <h1 class="hero-title">Voice for <span class="sector" id="sector">banking</span>.</h1>
+          <a href="#demo" class="btn btn-primary btn-lg hero-cta">Book a demo</a>
         </div>
 
-        <div class="dots" id="dots" aria-hidden="true"></div>
-        <p class="orb-status" id="orbStatus">Tap the orb to listen</p>
+        <!-- RIGHT: standalone bubble carousel -->
+        <div class="stage">
+          <div class="carousel">
+            <button class="stage-arrow" id="prev" aria-label="Previous voice">‹</button>
+            <div class="orb-track">
+              <canvas class="orb-peek left" id="peekPrev" width="360" height="360" aria-hidden="true"></canvas>
+              <button class="orb" id="orb" aria-label="Tap to hear this voice">
+                <canvas id="orbCanvas" width="640" height="640"></canvas>
+                <span class="orb-hint" id="orbHint">
+                  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" fill="currentColor"/>
+                  </svg>
+                  <em>Tap to listen</em>
+                </span>
+              </button>
+              <canvas class="orb-peek right" id="peekNext" width="360" height="360" aria-hidden="true"></canvas>
+            </div>
+            <button class="stage-arrow" id="next" aria-label="Next voice">›</button>
+          </div>
+          <div class="dots" id="dots" aria-hidden="true"></div>
+          <p class="orb-status" id="orbStatus">Tap the orb to listen</p>
+        </div>
       </div>
 
       <audio id="heroVoice" preload="none" src="./assets/hero-voice.mp3"></audio>
