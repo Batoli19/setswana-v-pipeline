@@ -4,10 +4,10 @@
   const orb = document.getElementById("orb");
   const status = document.getElementById("orbStatus");
   const audio = document.getElementById("heroVoice");
-  const panel = document.getElementById("stagePanel");
+  const heroEl = document.getElementById("demo");
   const sectorEl = document.getElementById("sector");
-  const sectorDot = document.getElementById("sectorDot");
-  const titleEl = document.getElementById("stageTitle");
+  const peekPrev = document.getElementById("peekPrev");
+  const peekNext = document.getElementById("peekNext");
   const dotsEl = document.getElementById("dots");
   const ctx = canvas.getContext("2d");
 
@@ -46,7 +46,11 @@
     parseInt(h.slice(5, 7), 16),
   ];
   const rgb = (c) => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
   const lerp = (a, b, t) => a + (b - a) * t;
+  // a soft bubble-like gradient for the peeking neighbour orbs
+  const peekBg = (s) =>
+    `radial-gradient(circle at 40% 34%, ${s.stops[0]}, ${s.stops[2]} 52%, ${s.stops[4]})`;
 
   // Live (animating) colour state, seeded from the first slide
   let cur = SLIDES[0].stops.map(hexToRgb);
@@ -111,6 +115,10 @@
     for (let i = 0; i < cur.length; i++)
       for (let k = 0; k < 3; k++) cur[i][k] = lerp(cur[i][k], target[i][k], 0.08);
     for (let k = 0; k < 3; k++) curHalo[k] = lerp(curHalo[k], targetHalo[k], 0.08);
+
+    // drive the hero's gradient underlay from the live bubble colours
+    heroEl.style.setProperty("--g1", rgba(cur[1], 0.5));
+    heroEl.style.setProperty("--g2", rgba(cur[3], 0.45));
 
     const tgt = analyser && !audio.paused ? sampleLevel() : 0;
     level += (tgt - level) * 0.12;
@@ -182,13 +190,13 @@
     targetHalo = s.halo.slice();
     sectorEl.textContent = s.sector;
     sectorEl.style.color = s.word;
-    sectorDot.style.color = s.word;
-    titleEl.textContent = s.title;
-    panel.style.background =
-      `radial-gradient(120% 110% at 50% 18%, ${s.panel[0]} 0%, ${s.panel[1]} 55%, #FFFFFF 100%)`;
+    // neighbour bubbles peeking on each side
+    peekPrev.style.background = peekBg(SLIDES[(idx - 1 + SLIDES.length) % SLIDES.length]);
+    peekNext.style.background = peekBg(SLIDES[(idx + 1) % SLIDES.length]);
     dotsEl.querySelectorAll(".dot-i").forEach((d, i) =>
       d.classList.toggle("active", i === idx));
   }
+  go(0); // seed peeks + sector
 
   document.getElementById("next").addEventListener("click", () => { userInteracted = true; go(idx + 1); });
   document.getElementById("prev").addEventListener("click", () => { userInteracted = true; go(idx - 1); });
