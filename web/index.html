@@ -5,51 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>V AI — Voice AI that speaks Botswana</title>
   <meta name="description" content="V AI builds natural, code-switched Setswana voice agents for banks, telcos and government — voice you can actually talk to." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <!-- NAV -->
   <header class="nav" id="nav">
-    <a class="brand" href="#top" aria-label="V AI home">
-      <span class="brand-mark">V</span>
-      <span class="brand-word">AI</span>
-    </a>
-    <nav class="nav-links" aria-label="Primary">
-      <a href="#product">Product</a>
-      <a href="#tech">Technology</a>
-      <a href="#demo">Demo</a>
-    </nav>
-    <a href="#demo" class="btn btn-primary nav-cta">Book a demo</a>
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="V AI home">
+        <span class="brand-mark">V</span>
+        <span class="brand-word">AI</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#product">Product</a>
+        <a href="#tech">Technology</a>
+        <a href="#demo">Demo</a>
+      </nav>
+      <div class="nav-right">
+        <a href="#demo" class="nav-login">Log in</a>
+        <a href="#demo" class="btn btn-primary nav-cta">Book a demo</a>
+      </div>
+    </div>
   </header>
 
   <!-- HERO -->
   <main id="top">
     <section class="hero" id="demo">
-      <p class="eyebrow">Setswana voice agents · built in Botswana</p>
-      <h1 class="hero-title">Voice AI that<br />speaks <span class="accent">Botswana</span>.</h1>
-      <p class="hero-sub">
-        Natural, code-switched Setswana &amp; English — the way Batswana actually
-        talk. Tap the orb and hear V AI answer.
-      </p>
+      <div class="hero-grid">
+        <!-- LEFT: copy -->
+        <div class="hero-copy">
+          <p class="eyebrow">Setswana voice agents · built in Botswana</p>
+          <h1 class="hero-title">Voice AI for<br /><span class="sector" id="sector">banking</span><span class="sector" id="sectorDot">.</span></h1>
+          <p class="hero-sub">
+            Natural, code-switched Setswana &amp; English — the way Batswana actually
+            talk. Browse the voices, tap the orb to listen.
+          </p>
+          <div class="hero-actions">
+            <a href="#demo" class="btn btn-primary btn-lg">Book a demo</a>
+            <a href="#product" class="btn btn-ghost btn-lg">See how it works</a>
+          </div>
+          <p class="hero-stat"><strong>2,000+</strong> Setswana clips already training V AI</p>
+        </div>
 
-      <!-- THE BUBBLE -->
-      <div class="orb-stage">
-        <button class="orb" id="orb" aria-label="Tap to hear V AI speak">
-          <canvas id="orbCanvas" width="640" height="640"></canvas>
-          <span class="orb-hint" id="orbHint">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-              <path d="M8 5v14l11-7z" fill="currentColor"/>
-            </svg>
-            <em>Tap to listen</em>
-          </span>
-        </button>
-        <p class="orb-status" id="orbStatus">Powered by our own Setswana speech models</p>
-      </div>
-
-      <div class="hero-actions">
-        <a href="#demo" class="btn btn-primary btn-lg">Talk to V AI</a>
-        <a href="#product" class="btn btn-ghost btn-lg">See how it works</a>
+        <!-- RIGHT: browsable voice carousel -->
+        <div class="stage">
+          <div class="stage-row">
+            <button class="stage-arrow" id="prev" aria-label="Previous voice">‹</button>
+            <div class="stage-panel" id="stagePanel">
+              <button class="orb" id="orb" aria-label="Tap to hear this voice">
+                <canvas id="orbCanvas" width="640" height="640"></canvas>
+                <span class="orb-hint" id="orbHint">
+                  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" fill="currentColor"/>
+                  </svg>
+                  <em>Tap to listen</em>
+                </span>
+              </button>
+              <div class="stage-label">
+                <span class="stage-kicker">V AI</span>
+                <span class="stage-title" id="stageTitle">Voice for banking</span>
+              </div>
+            </div>
+            <button class="stage-arrow" id="next" aria-label="Next voice">›</button>
+          </div>
+          <div class="dots" id="dots" aria-hidden="true"></div>
+          <p class="orb-status" id="orbStatus">Tap the orb to hear this voice</p>
+        </div>
       </div>
 
       <audio id="heroVoice" preload="none" src="./assets/hero-voice.mp3"></audio>
