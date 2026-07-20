@@ -6,9 +6,9 @@
   const audio = document.getElementById("heroVoice");
   const ctx = canvas.getContext("2d");
 
-  // Palette (from callab.ai)
-  const ACCENT = "#E46A07";
-  const PINK = "#F3B0C8";
+  // Palette (from callab.ai — pink/purple mesh)
+  const ACCENT = "#8A5CF0";
+  const PINK = "#EC77B3";
   const CREAM = "#F7EFE9";
 
   // Hi-DPI setup
@@ -80,8 +80,8 @@
 
     // Outer glow halo (pulses with audio)
     const halo = ctx.createRadialGradient(CX, CY, BASE_R * 0.6, CX, CY, BASE_R * (1.55 + amp));
-    halo.addColorStop(0, "rgba(228,106,7,0.22)");
-    halo.addColorStop(1, "rgba(228,106,7,0)");
+    halo.addColorStop(0, "rgba(138,92,240,0.22)");
+    halo.addColorStop(1, "rgba(138,92,240,0)");
     ctx.fillStyle = halo;
     ctx.fillRect(0, 0, SIZE, SIZE);
 
@@ -93,10 +93,11 @@
       CX - BASE_R * 0.35, CY - BASE_R * 0.4, BASE_R * 0.15,
       CX, CY, BASE_R * 1.25
     );
-    g.addColorStop(0, "#FFC9A3");
-    g.addColorStop(0.42, ACCENT);
-    g.addColorStop(0.82, "#D85E9A");
-    g.addColorStop(1, PINK);
+    g.addColorStop(0, "#FCE0F0");   // soft pink highlight
+    g.addColorStop(0.34, PINK);     // pink
+    g.addColorStop(0.64, "#B15CDA"); // magenta
+    g.addColorStop(0.88, ACCENT);   // purple
+    g.addColorStop(1, "#7A4DE0");   // deep purple edge
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, SIZE, SIZE);
 
