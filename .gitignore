@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Audio data — too large for git; lives locally and in Google Drive for Colab
+audio/*
+!audio/.gitkeep
+
+# Recordings staging
+transcription/recordings/
+
+# Frontend (web/) — Node/Vite build artifacts
+web/node_modules/
+web/dist/
