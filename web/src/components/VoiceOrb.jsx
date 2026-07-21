@@ -125,16 +125,19 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
     setStatus("Tap again to replay");
   }
 
+  const slide = SLIDES[idx];
+
   return (
     <div className="stage">
       <div className="carousel">
-        <button className="stage-arrow" onClick={() => go(idx - 1)} aria-label="Previous voice">‹</button>
         <div className="orb-track">
+          <span className="orb-name" style={{ color: slide.word }}>{slide.name}</span>
+          <button className="stage-arrow" onClick={() => go(idx - 1)} aria-label="Previous voice">‹</button>
           <canvas className="orb-peek left" ref={canvasLeftRef} width={360} height={360} aria-hidden="true" />
           <button
             className={`orb${playing ? " playing" : ""}`}
             onClick={handleOrbClick}
-            aria-label="Tap to hear this voice"
+            aria-label={`Play ${slide.name}, the ${slide.sector} voice`}
           >
             <canvas ref={canvasCenterRef} width={640} height={640} />
             <span className="orb-hint">
@@ -145,8 +148,8 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
             </span>
           </button>
           <canvas className="orb-peek right" ref={canvasRightRef} width={360} height={360} aria-hidden="true" />
+          <button className="stage-arrow" onClick={() => go(idx + 1)} aria-label="Next voice">›</button>
         </div>
-        <button className="stage-arrow" onClick={() => go(idx + 1)} aria-label="Next voice">›</button>
       </div>
 
       <div className="dots" aria-hidden="true">
