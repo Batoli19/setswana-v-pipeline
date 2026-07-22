@@ -80,7 +80,9 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 .nav-cta:hover { background: var(--blue-dk); transform: translateY(-1px); }
 
 /* ============ Hero ============ */
-.hero { position: relative; overflow: hidden; }
+.hero { position: relative; overflow: hidden; background: #ffffff; }
+/* pure white hero — gradient underlay removed */
+.hero-bg { display: none !important; }
 /* subtle cool underlay — colours follow the active bubble (--g1/--g2 set in JS) */
 .hero-bg { position: absolute; top: 0; left: 0; right: 0; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; }
 .hero-bg .blob { position: absolute; border-radius: 50%; filter: blur(100px); will-change: transform; }
