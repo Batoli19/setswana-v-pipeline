@@ -73,9 +73,11 @@ function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) 
 
   return (
     <group ref={group} position={position}>
-      {/* saturated liquid core — bright, colour-forward */}
-      <mesh scale={scale * 0.9}>
-        <sphereGeometry args={[1, 64, 64]} />
+      {/* saturated liquid core — bright, colour-forward.
+          Geometry is radius 2.4 and the mesh scaled down so the distortion
+          noise samples a wider domain => lumpier, multi-lobe wobble. */}
+      <mesh scale={(scale * 0.9) / 2.4}>
+        <sphereGeometry args={[2.4, 96, 96]} />
         <MeshDistortMaterial
           ref={coreMat}
           speed={speed}
@@ -89,12 +91,12 @@ function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) 
         />
       </mesh>
       {/* clear glass shell with a bright rim highlight */}
-      <mesh scale={scale}>
-        <sphereGeometry args={[1, 96, 96]} />
+      <mesh scale={scale / 2.4}>
+        <sphereGeometry args={[2.4, 96, 96]} />
         <MeshDistortMaterial
           ref={shellMat}
           speed={speed}
-          distort={distort * 0.8}
+          distort={distort * 0.85}
           transparent
           opacity={0.22}
           color="#ffffff"
@@ -106,24 +108,24 @@ function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) 
           depthWrite={false}
         />
       </mesh>
-      {/* coloured ground reflection (camera-facing) */}
-      <mesh position={[0, -scale * 1.32, 0.25]}>
-        <planeGeometry args={[scale * 2.3, scale * 0.7]} />
+      {/* tight saturated colour reflection, hugging the bubble base */}
+      <mesh position={[0, -scale * 1.18, 0.15]}>
+        <planeGeometry args={[scale * 1.25, scale * 0.4]} />
         <meshBasicMaterial
           ref={glowMat}
           transparent
-          opacity={0.5}
+          opacity={0.65}
           alphaMap={alphaTex}
           depthWrite={false}
         />
       </mesh>
-      {/* darker contact shadow */}
-      <mesh position={[0, -scale * 1.3, 0.24]}>
-        <planeGeometry args={[scale * 1.3, scale * 0.34]} />
+      {/* faint neutral contact shadow, small */}
+      <mesh position={[0, -scale * 1.16, 0.14]}>
+        <planeGeometry args={[scale * 0.8, scale * 0.22]} />
         <meshBasicMaterial
-          color="#232338"
+          color="#30304a"
           transparent
-          opacity={0.28}
+          opacity={0.15}
           alphaMap={alphaTex}
           depthWrite={false}
         />
@@ -150,8 +152,8 @@ export default function GlassBubbles({ centerRef, leftRef, rightRef, levelRef })
         seed={0}
         position={[0, 0.25, 0]}
         scale={2.05}
-        distort={0.32}
-        speed={1.6}
+        distort={0.47}
+        speed={1.9}
         levelRef={levelRef}
       />
       <Bubble
@@ -159,16 +161,16 @@ export default function GlassBubbles({ centerRef, leftRef, rightRef, levelRef })
         seed={2.1}
         position={[-3.2, -0.45, -0.8]}
         scale={1.1}
-        distort={0.3}
-        speed={1.2}
+        distort={0.44}
+        speed={1.5}
       />
       <Bubble
         targetRef={rightRef}
         seed={4.4}
         position={[3.2, -0.45, -0.8]}
         scale={1.0}
-        distort={0.3}
-        speed={1.3}
+        distort={0.44}
+        speed={1.6}
       />
     </Canvas>
   );
