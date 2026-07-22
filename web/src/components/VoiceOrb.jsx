@@ -1,68 +1,59 @@
 import { useEffect, useRef, useState } from "react";
-import { SLIDES, rgba } from "../data/slides.js";
-import { makeOrb, setOrbSlide, drawOrb, sampleLevel } from "../utils/orbRenderer.js";
+import { SLIDES } from "../data/slides.js";
+import GlassBubbles from "./GlassBubbles.jsx";
+
+// Build the colour target for one slide: body colour, attenuation (inner
+// light tint) and ground-glow colour.
+const slideTarget = (s) => ({ c: s.stops[3], a: s.stops[1], g: s.word });
 
 export default function VoiceOrb({ idx, setIdx, heroRef }) {
-  const canvasCenterRef = useRef(null);
-  const canvasLeftRef = useRef(null);
-  const canvasRightRef = useRef(null);
   const audioRef = useRef(null);
-
-  const orbsRef = useRef(null);
-  const userInteractedRef = useRef(false);
   const analyserRef = useRef(null);
   const audioDataRef = useRef(null);
   const audioCtxRef = useRef(null);
   const levelRef = useRef(0);
+  const rafRef = useRef(0);
+  const userInteractedRef = useRef(false);
+
+  const centerRef = useRef(slideTarget(SLIDES[0]));
+  const leftRef = useRef(slideTarget(SLIDES[SLIDES.length - 1]));
+  const rightRef = useRef(slideTarget(SLIDES[1]));
 
   const [playing, setPlaying] = useState(false);
   const [status, setStatus] = useState("Tap the orb to listen");
 
-  // Build the three orbs once and start the render loop.
+  // Retarget bubble colours whenever the active slide changes, and tint the
+  // hero's soft gradient underlay to match.
   useEffect(() => {
-    const center = makeOrb(canvasCenterRef.current, true, 0, SLIDES[0]);
-    const left = makeOrb(canvasLeftRef.current, false, 1.7, SLIDES[SLIDES.length - 1]);
-    const right = makeOrb(canvasRightRef.current, false, 3.1, SLIDES[1]);
-    setOrbSlide(left, SLIDES[SLIDES.length - 1], true);
-    setOrbSlide(right, SLIDES[1], true);
-    orbsRef.current = { center, left, right };
+    const s = SLIDES[idx];
+    centerRef.current = slideTarget(s);
+    leftRef.current = slideTarget(SLIDES[(idx - 1 + SLIDES.length) % SLIDES.length]);
+    rightRef.current = slideTarget(SLIDES[(idx + 1) % SLIDES.length]);
+    if (heroRef.current) {
+      const [r1, g1, b1] = s.halo;
+      heroRef.current.style.setProperty("--g1", `rgba(${r1},${g1},${b1},0.30)`);
+      heroRef.current.style.setProperty("--g2", `rgba(${r1},${g1},${b1},0.20)`);
+    }
+  }, [idx, heroRef]);
 
-    let raf;
-    let t = 0;
-    function frame() {
-      t += 0.016;
+  // Audio level sampling loop (feeds bubble amplitude).
+  useEffect(() => {
+    const tick = () => {
       const audio = audioRef.current;
       const analyser = analyserRef.current;
-      const tgt = analyser && audio && !audio.paused ? sampleLevel(analyser, audioDataRef.current) : 0;
-      levelRef.current += (tgt - levelRef.current) * 0.12;
-      const centerAmp = levelRef.current + (audio && !audio.paused ? 0.05 : 0.03);
-      const peekAmp = 0.03;
-
-      const { center, left, right } = orbsRef.current;
-      drawOrb(center, t, centerAmp);
-      drawOrb(left, t, peekAmp);
-      drawOrb(right, t, peekAmp);
-
-      // hero gradient underlay follows the centre bubble's live colours
-      if (heroRef.current) {
-        heroRef.current.style.setProperty("--g1", rgba(center.cur[1], 0.5));
-        heroRef.current.style.setProperty("--g2", rgba(center.cur[3], 0.45));
+      let target = 0;
+      if (analyser && audio && !audio.paused) {
+        analyser.getByteFrequencyData(audioDataRef.current);
+        let s = 0;
+        for (let i = 0; i < audioDataRef.current.length; i++) s += audioDataRef.current[i];
+        target = s / audioDataRef.current.length / 255;
       }
-      raf = requestAnimationFrame(frame);
-    }
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
-  }, [heroRef]);
-
-  // Retarget orb colours whenever the active slide changes.
-  useEffect(() => {
-    const orbs = orbsRef.current;
-    if (!orbs) return;
-    const s = SLIDES[idx];
-    setOrbSlide(orbs.center, s, false);
-    setOrbSlide(orbs.left, SLIDES[(idx - 1 + SLIDES.length) % SLIDES.length], false);
-    setOrbSlide(orbs.right, SLIDES[(idx + 1) % SLIDES.length], false);
-  }, [idx]);
+      levelRef.current += (target - levelRef.current) * 0.12;
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
 
   // Gentle auto-advance until the user interacts.
   useEffect(() => {
@@ -97,7 +88,7 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
     }
   }
 
-  async function handleOrbClick() {
+  async function handlePlayClick() {
     userInteractedRef.current = true;
     initAudioGraph();
     const audio = audioRef.current;
@@ -120,36 +111,34 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
     }
   }
 
-  function handleEnded() {
-    setPlaying(false);
-    setStatus("Tap again to replay");
-  }
-
-  const slide = SLIDES[idx];
-
   return (
     <div className="stage">
-      <div className="carousel">
-        <div className="orb-track">
-          <span className="orb-name" style={{ color: slide.word }}>{slide.name}</span>
-          <button className="stage-arrow" onClick={() => go(idx - 1)} aria-label="Previous voice">‹</button>
-          <canvas className="orb-peek left" ref={canvasLeftRef} width={360} height={360} aria-hidden="true" />
-          <button
-            className={`orb${playing ? " playing" : ""}`}
-            onClick={handleOrbClick}
-            aria-label={`Play ${slide.name}, the ${slide.sector} voice`}
-          >
-            <canvas ref={canvasCenterRef} width={640} height={640} />
-            <span className="orb-hint">
-              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                <path d="M8 5v14l11-7z" fill="currentColor" />
-              </svg>
-              <em>Tap to listen</em>
-            </span>
-          </button>
-          <canvas className="orb-peek right" ref={canvasRightRef} width={360} height={360} aria-hidden="true" />
-          <button className="stage-arrow" onClick={() => go(idx + 1)} aria-label="Next voice">›</button>
-        </div>
+      <div className="orb-track">
+        <GlassBubbles
+          centerRef={centerRef}
+          leftRef={leftRef}
+          rightRef={rightRef}
+          levelRef={levelRef}
+        />
+
+        <button className="stage-arrow left" onClick={() => go(idx - 1)} aria-label="Previous voice">
+          ‹
+        </button>
+        <button className="stage-arrow right" onClick={() => go(idx + 1)} aria-label="Next voice">
+          ›
+        </button>
+
+        {/* Tap-to-listen overlay on the centre bubble */}
+        <button
+          className={`orb-tap${playing ? " playing" : ""}`}
+          onClick={handlePlayClick}
+          aria-label="Tap to hear this voice"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="currentColor" />
+          </svg>
+          <em>Tap to listen</em>
+        </button>
       </div>
 
       <div className="dots" aria-hidden="true">
@@ -164,7 +153,12 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
       </div>
 
       <p className="orb-status">{status}</p>
-      <audio ref={audioRef} preload="none" src="/assets/hero-voice.mp3" onEnded={handleEnded} />
+      <audio
+        ref={audioRef}
+        preload="none"
+        src="/assets/hero-voice.mp3"
+        onEnded={() => { setPlaying(false); setStatus("Tap again to replay"); }}
+      />
     </div>
   );
 }
