@@ -6,7 +6,8 @@ import GlassBubbles from "./GlassBubbles.jsx";
 // light tint) and ground-glow colour.
 const slideTarget = (s) => ({ c: s.stops[3], a: s.stops[1], g: s.word });
 
-// Pick the nicest available English voice (Google/natural > OS default).
+// Pick the nicest available English voice — used only as a fallback if a
+// generated clip fails to load.
 function pickVoice() {
   const voices = window.speechSynthesis?.getVoices?.() || [];
   if (!voices.length) return null;
@@ -21,9 +22,15 @@ function pickVoice() {
 }
 
 export default function VoiceOrb({ idx, setIdx, heroRef }) {
+  const audioRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const analyserRef = useRef(null);
+  const audioDataRef = useRef(null);
+  const srcNodeRef = useRef(null);
+
   const levelRef = useRef(0);
   const rafRef = useRef(0);
-  const speakingRef = useRef(false);
+  const speakingRef = useRef(false); // fallback TTS is talking
   const voiceRef = useRef(null);
   const userInteractedRef = useRef(false);
   const idxRef = useRef(idx);
@@ -32,26 +39,23 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
   const leftRef = useRef(slideTarget(SLIDES[SLIDES.length - 1]));
   const rightRef = useRef(slideTarget(SLIDES[1]));
 
-  const supported = typeof window !== "undefined" && "speechSynthesis" in window;
+  const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [playing, setPlaying] = useState(false);
-  const [status, setStatus] = useState(
-    supported ? "Tap the orb to hear this voice" : "Voice needs a modern browser"
-  );
+  const [status, setStatus] = useState("Tap the orb to hear this voice");
 
-  // Load & keep the chosen voice (voices arrive async in some browsers).
+  // Keep a fallback voice ready (voices load async in some browsers).
   useEffect(() => {
-    if (!supported) return;
+    if (!ttsSupported) return;
     const load = () => { voiceRef.current = pickVoice(); };
     load();
     window.speechSynthesis.addEventListener("voiceschanged", load);
     return () => window.speechSynthesis.removeEventListener("voiceschanged", load);
-  }, [supported]);
+  }, [ttsSupported]);
 
-  // Keep a ref of the active index for use inside speech callbacks.
   useEffect(() => { idxRef.current = idx; }, [idx]);
 
-  // Retarget bubble colours whenever the active slide changes, tint the hero
-  // underlay, and stop any voice from the previous sector.
+  // Retarget bubble colours + hero underlay on slide change, and stop any
+  // voice from the previous sector.
   useEffect(() => {
     const s = SLIDES[idx];
     centerRef.current = slideTarget(s);
@@ -64,72 +68,117 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
     }
   }, [idx, heroRef]);
 
-  // Bubble amplitude loop. While the voice is speaking we drive a lively
-  // synthetic envelope so the centre bubble pulses with the speech.
+  // Bubble amplitude loop: real waveform level while a clip plays, a synthetic
+  // envelope while the fallback voice talks, else calm.
   useEffect(() => {
     const tick = () => {
       let target = 0;
-      if (speakingRef.current) {
+      const audio = audioRef.current;
+      if (audio && !audio.paused && analyserRef.current) {
+        analyserRef.current.getByteFrequencyData(audioDataRef.current);
+        let s = 0;
+        for (let i = 0; i < audioDataRef.current.length; i++) s += audioDataRef.current[i];
+        target = (s / audioDataRef.current.length / 255) * 1.6;
+      } else if (speakingRef.current) {
         const t = performance.now() / 1000;
         target = 0.34 + 0.28 * Math.abs(Math.sin(t * 7.3)) + 0.12 * Math.abs(Math.sin(t * 13.7));
       }
-      levelRef.current += (target - levelRef.current) * 0.18;
+      levelRef.current += (target - levelRef.current) * 0.16;
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  // Gentle auto-advance until the user interacts (and never mid-speech).
+  // Gentle auto-advance until the user interacts (never mid-voice).
   useEffect(() => {
     const id = setInterval(() => {
-      if (!userInteractedRef.current && !speakingRef.current) {
+      const audio = audioRef.current;
+      const busy = speakingRef.current || (audio && !audio.paused);
+      if (!userInteractedRef.current && !busy) {
         setIdx((i) => (i + 1) % SLIDES.length);
       }
     }, 5000);
     return () => clearInterval(id);
   }, [setIdx]);
 
-  // Stop speech if the component unmounts.
-  useEffect(() => () => { if (supported) window.speechSynthesis.cancel(); }, [supported]);
+  useEffect(() => () => stopAll(), []); // stop on unmount
 
-  function stopSpeaking() {
-    if (supported) window.speechSynthesis.cancel();
+  function stopAll() {
+    if (ttsSupported) window.speechSynthesis.cancel();
     speakingRef.current = false;
+    const audio = audioRef.current;
+    if (audio) { audio.pause(); audio.currentTime = 0; }
     setPlaying(false);
   }
 
-  function go(n) {
-    userInteractedRef.current = true;
-    stopSpeaking();
-    setStatus("Tap the orb to hear this voice");
-    setIdx((n + SLIDES.length) % SLIDES.length);
+  function ensureGraph() {
+    if (analyserRef.current || !audioRef.current) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC();
+      const src = ctx.createMediaElementSource(audioRef.current);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      audioDataRef.current = new Uint8Array(analyser.frequencyBinCount);
+      src.connect(analyser);
+      analyser.connect(ctx.destination);
+      audioCtxRef.current = ctx;
+      analyserRef.current = analyser;
+      srcNodeRef.current = src;
+    } catch (e) {
+      analyserRef.current = null; // reactivity off, playback still works
+    }
   }
 
-  function handlePlayClick() {
-    userInteractedRef.current = true;
-    if (!supported) return;
-
-    // Toggle: source of truth is our flag OR the engine's own speaking state
-    // (onstart can lag ~1s on Windows, so we can't wait for it).
-    if (speakingRef.current || window.speechSynthesis.speaking) {
-      stopSpeaking();
-      setStatus("Tap the orb to hear this voice");
-      return;
-    }
-
+  function speakFallback(text) {
+    if (!ttsSupported) return;
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(SLIDES[idxRef.current].greeting);
+    const u = new SpeechSynthesisUtterance(text);
     if (voiceRef.current) u.voice = voiceRef.current;
-    u.rate = 0.98;
-    u.pitch = 1.02;
+    u.rate = 0.98; u.pitch = 1.02;
     u.onend = () => { speakingRef.current = false; setPlaying(false); setStatus("Tap again to replay"); };
     u.onerror = () => { speakingRef.current = false; setPlaying(false); setStatus("Tap the orb to hear this voice"); };
-    // Flip UI + bubble pulse immediately, without waiting for onstart.
     speakingRef.current = true;
     setPlaying(true);
     setStatus("VoiceAI is speaking…");
     window.speechSynthesis.speak(u);
+  }
+
+  function go(n) {
+    userInteractedRef.current = true;
+    stopAll();
+    setStatus("Tap the orb to hear this voice");
+    setIdx((n + SLIDES.length) % SLIDES.length);
+  }
+
+  async function handlePlayClick() {
+    userInteractedRef.current = true;
+    const audio = audioRef.current;
+    const busy = speakingRef.current || (audio && !audio.paused);
+    if (busy) {
+      stopAll();
+      setStatus("Tap the orb to hear this voice");
+      return;
+    }
+
+    const slide = SLIDES[idxRef.current];
+    ensureGraph();
+    if (audioCtxRef.current?.state === "suspended") {
+      try { await audioCtxRef.current.resume(); } catch (_) {}
+    }
+
+    // Primary path: the real generated clip.
+    try {
+      audio.src = slide.clip;
+      audio.currentTime = 0;
+      await audio.play();
+      setPlaying(true);
+      setStatus("VoiceAI is speaking…");
+    } catch (e) {
+      // Fallback: browser speech synthesis of the greeting text.
+      speakFallback(slide.greeting);
+    }
   }
 
   return (
@@ -178,6 +227,12 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
       </div>
 
       <p className="orb-status">{status}</p>
+      <audio
+        ref={audioRef}
+        preload="none"
+        crossOrigin="anonymous"
+        onEnded={() => { setPlaying(false); setStatus("Tap again to replay"); }}
+      />
     </div>
   );
 }
