@@ -1,18 +1,22 @@
-// Each slide = one business voice with its own colour identity + persona name.
-// `grad` is the two-stop headline/name gradient (matches the bubble family).
+// Each slide = one business voice with its own colour identity.
+// `grad` is the two-stop headline gradient; `sub` the per-sector hero subtext.
 export const SLIDES = [
-  { sector: "banking", name: "Kagiso", word: "#8A5CF0", halo: [138, 92, 240],
+  { sector: "banking", word: "#8A5CF0", halo: [138, 92, 240],
     grad: ["#8A5CF0", "#EC77B3"],
-    stops: ["#FCE0F0", "#EC77B3", "#B15CDA", "#8A5CF0", "#7A4DE0"] },
-  { sector: "telecoms", name: "Boitumelo", word: "#2FA84F", halo: [60, 190, 100],
+    stops: ["#FCE0F0", "#EC77B3", "#B15CDA", "#8A5CF0", "#7A4DE0"],
+    sub: "Serve customers in their own language with secure, human-like voice banking experiences." },
+  { sector: "telecoms", word: "#2FA84F", halo: [60, 190, 100],
     grad: ["#2FA84F", "#A6E06B"],
-    stops: ["#EAFBD6", "#A6E06B", "#5FC06B", "#2FA84F", "#1E8F45"] },
-  { sector: "insurance", name: "Lesego", word: "#F47A1F", halo: [244, 122, 31],
+    stops: ["#EAFBD6", "#A6E06B", "#5FC06B", "#2FA84F", "#1E8F45"],
+    sub: "Automate support calls with natural, code-switching voice agents your subscribers trust." },
+  { sector: "insurance", word: "#F47A1F", halo: [244, 122, 31],
     grad: ["#E06A0C", "#FFC078"],
-    stops: ["#FFEBD2", "#FFC078", "#FF9A3D", "#F47A1F", "#E06A0C"] },
-  { sector: "government", name: "Tumelo", word: "#2E6FD0", halo: [46, 111, 208],
+    stops: ["#FFEBD2", "#FFC078", "#FF9A3D", "#F47A1F", "#E06A0C"],
+    sub: "Handle claims and queries with warm, intelligent voice experiences around the clock." },
+  { sector: "government", word: "#2E6FD0", halo: [46, 111, 208],
     grad: ["#2E6FD0", "#86C2F5"],
-    stops: ["#DBEEFF", "#86C2F5", "#4C98E8", "#2E6FD0", "#1E56B0"] },
+    stops: ["#DBEEFF", "#86C2F5", "#4C98E8", "#2E6FD0", "#1E56B0"],
+    sub: "Modernize citizen engagement with secure, intelligent, and human-like voice experiences." },
 ];
 
 export const hexToRgb = (h) => [
