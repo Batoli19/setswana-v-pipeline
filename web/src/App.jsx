@@ -1,8 +1,8 @@
 import Nav from "./components/Nav.jsx";
 import Hero from "./components/Hero.jsx";
-import TrustStrip from "./components/TrustStrip.jsx";
-import ProductSection from "./components/ProductSection.jsx";
-import TechSection from "./components/TechSection.jsx";
+import LanguagesShowcase from "./components/LanguagesShowcase.jsx";
+import CultureSection from "./components/CultureSection.jsx";
+import DifferentSection from "./components/DifferentSection.jsx";
 import Footer from "./components/Footer.jsx";
 
 export default function App() {
@@ -11,9 +11,9 @@ export default function App() {
       <Nav />
       <main id="top">
         <Hero />
-        <TrustStrip />
-        <ProductSection />
-        <TechSection />
+        <LanguagesShowcase />
+        <CultureSection />
+        <DifferentSection />
       </main>
       <Footer />
     </>
