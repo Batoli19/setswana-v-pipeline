@@ -108,28 +108,6 @@ function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) 
           depthWrite={false}
         />
       </mesh>
-      {/* tight saturated colour reflection, hugging the bubble base */}
-      <mesh position={[0, -scale * 1.18, 0.15]}>
-        <planeGeometry args={[scale * 1.25, scale * 0.4]} />
-        <meshBasicMaterial
-          ref={glowMat}
-          transparent
-          opacity={0.65}
-          alphaMap={alphaTex}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* faint neutral contact shadow, small */}
-      <mesh position={[0, -scale * 1.16, 0.14]}>
-        <planeGeometry args={[scale * 0.8, scale * 0.22]} />
-        <meshBasicMaterial
-          color="#30304a"
-          transparent
-          opacity={0.15}
-          alphaMap={alphaTex}
-          depthWrite={false}
-        />
-      </mesh>
     </group>
   );
 }
