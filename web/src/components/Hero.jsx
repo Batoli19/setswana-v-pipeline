@@ -25,17 +25,19 @@ export default function Hero() {
       <div className="hero-inner">
         {/* LEFT: copy */}
         <div className="hero-copy">
+          <span className="hero-badge">AI VOICE TECHNOLOGY</span>
           <h1 className="hero-title">
             Voice for
             <br />
             <span className="sector" style={{ backgroundImage: gradient }}>{slide.sector}</span>.
           </h1>
+          <p className="hero-sub">{slide.sub}</p>
           <a href="#demo" className="btn-hero">
             Book a demo <ArrowUpRight />
           </a>
         </div>
 
-        {/* RIGHT: floating bubble carousel */}
+        {/* RIGHT: liquid-glass bubble carousel */}
         <VoiceOrb idx={idx} setIdx={setIdx} heroRef={heroRef} />
       </div>
 
