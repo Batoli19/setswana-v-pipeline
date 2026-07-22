@@ -99,10 +99,13 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 
 .hero-inner {
   position: relative; z-index: 2;
-  max-width: var(--maxw); margin: 0 auto; padding: 0 32px;
+  width: 100%; max-width: none; margin: 0;
+  padding: 0 clamp(20px, 3vw, 44px);
   min-height: calc(100vh - 86px);
-  display: grid; grid-template-columns: 0.85fr 1.15fr; align-items: center; gap: 24px;
+  display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  align-items: center; gap: clamp(32px, 7vw, 140px);
 }
+.hero-copy { justify-self: start; }
 .hero-badge {
   display: inline-block; margin-bottom: 22px;
   padding: 7px 14px; border-radius: 999px;
@@ -141,7 +144,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 }
 
 /* ============ Liquid-glass bubble stage ============ */
-.stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; align-self: center; }
+.stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; align-self: center; justify-self: end; width: 100%; max-width: 700px; }
 .orb-track {
   position: relative;
   width: 100%; max-width: 680px; height: min(460px, 76vw);
