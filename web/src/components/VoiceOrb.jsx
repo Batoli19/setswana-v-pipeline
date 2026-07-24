@@ -2,10 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { SLIDES } from "../data/slides.js";
 import GlassBubbles from "./GlassBubbles.jsx";
 
-// Build the colour target for one slide: body colour, attenuation (inner
-// light tint) and ground-glow colour.
-const slideTarget = (s) => ({ c: s.stops[3], a: s.stops[1], g: s.word });
-
 // Pick the nicest available English voice — used only as a fallback if a
 // generated clip fails to load.
 function pickVoice() {
@@ -21,7 +17,7 @@ function pickVoice() {
   return pool[0];
 }
 
-export default function VoiceOrb({ idx, setIdx, heroRef }) {
+export default function VoiceOrb({ count, setCount, idx, heroRef }) {
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
@@ -32,12 +28,7 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
   const rafRef = useRef(0);
   const speakingRef = useRef(false); // fallback TTS is talking
   const voiceRef = useRef(null);
-  const userInteractedRef = useRef(false);
   const idxRef = useRef(idx);
-
-  const centerRef = useRef(slideTarget(SLIDES[0]));
-  const leftRef = useRef(slideTarget(SLIDES[SLIDES.length - 1]));
-  const rightRef = useRef(slideTarget(SLIDES[1]));
 
   const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [playing, setPlaying] = useState(false);
@@ -54,15 +45,10 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
 
   useEffect(() => { idxRef.current = idx; }, [idx]);
 
-  // Retarget bubble colours + hero underlay on slide change, and stop any
-  // voice from the previous sector.
+  // Retint the hero underlay to match the active sector on slide change.
   useEffect(() => {
-    const s = SLIDES[idx];
-    centerRef.current = slideTarget(s);
-    leftRef.current = slideTarget(SLIDES[(idx - 1 + SLIDES.length) % SLIDES.length]);
-    rightRef.current = slideTarget(SLIDES[(idx + 1) % SLIDES.length]);
     if (heroRef.current) {
-      const [r1, g1, b1] = s.halo;
+      const [r1, g1, b1] = SLIDES[idx].halo;
       heroRef.current.style.setProperty("--g1", `rgba(${r1},${g1},${b1},0.30)`);
       heroRef.current.style.setProperty("--g2", `rgba(${r1},${g1},${b1},0.20)`);
     }
@@ -135,15 +121,16 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
     window.speechSynthesis.speak(u);
   }
 
-  function go(n) {
-    userInteractedRef.current = true;
+  // Step the carousel by a signed direction. The counter is monotonic (not
+  // wrapped) so the orbs always slide the same way per direction and the track
+  // feels infinite; the shown slide is derived from it up in Hero.
+  function step(dir) {
     stopAll();
     setStatus("Tap the orb to hear this voice");
-    setIdx((n + SLIDES.length) % SLIDES.length);
+    setCount((c) => c + dir);
   }
 
   async function handlePlayClick() {
-    userInteractedRef.current = true;
     const audio = audioRef.current;
     const busy = speakingRef.current || (audio && !audio.paused);
     if (busy) {
@@ -174,17 +161,12 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
   return (
     <div className="stage">
       <div className="orb-track">
-        <GlassBubbles
-          centerRef={centerRef}
-          leftRef={leftRef}
-          rightRef={rightRef}
-          levelRef={levelRef}
-        />
+        <GlassBubbles count={count} levelRef={levelRef} />
 
-        <button className="stage-arrow left" onClick={() => go(idx - 1)} aria-label="Previous voice">
+        <button className="stage-arrow left" onClick={() => step(-1)} aria-label="Previous voice">
           ‹
         </button>
-        <button className="stage-arrow right" onClick={() => go(idx + 1)} aria-label="Next voice">
+        <button className="stage-arrow right" onClick={() => step(1)} aria-label="Next voice">
           ›
         </button>
 
