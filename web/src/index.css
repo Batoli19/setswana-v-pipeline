@@ -1,6 +1,11 @@
 /* ============ VoiceAI — cool-white liquid-glass theme ============ */
 :root {
   --bg:        #F4F6FA;
+  /* container column, its margins, and the rail lines are all kept in place,
+     but made identical/transparent so the page reads as one seamless colour —
+     the content is still contained (gradients can't bleed past the edges) */
+  --edge:      #F4F6FA;
+  --rail:      transparent;
   --cream:     #F7EFE9;
   --cream-2:   #FAF9F7;
   --white:     #FFFFFF;
@@ -26,11 +31,25 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--edge);
   color: var(--ink);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+}
+
+/* One centred content column for the whole site, framed by vertical rail lines
+   (like Bland). Everything — nav, hero, sections, footer — sits inside these
+   edges; the greyer body colour shows in the margins so the rails read clearly
+   when you zoom out, and each section's gradient is clipped to this width. */
+.page {
+  position: relative;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+  border-left: 1px solid var(--rail);
+  border-right: 1px solid var(--rail);
 }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: var(--font-display); }
@@ -83,7 +102,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 /* same base colour as the body so the hero fades into it with no seam */
 .hero { position: relative; overflow: hidden; background: var(--bg); }
 /* subtle cool underlay — colours follow the active bubble (--g1/--g2 set in JS) */
-.hero-bg { position: absolute; top: 0; left: 0; right: 0; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; }
+.hero-bg { position: absolute; top: 0; left: 0; right: 0; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
 .hero-bg .blob { position: absolute; border-radius: 50%; filter: blur(100px); will-change: transform; }
 .hero-bg .b1 { width: 62vw; height: 62vw; top: -22%; right: -10%; opacity: 0.5;
   background: radial-gradient(circle, var(--g1, rgba(46,111,208,0.3)), transparent 66%);
@@ -125,11 +144,14 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 .hero-inner {
   position: relative; z-index: 2;
   box-sizing: border-box;
-  width: 100%; max-width: none; margin: 0;
-  padding: 86px clamp(20px, 3vw, 44px) 0;
-  min-height: 100vh;
-  display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-  align-items: center; gap: clamp(32px, 7vw, 140px);
+  /* contained + centred like the rest of the site (and Bland): caps the width
+     so the two columns don't drift apart on wide screens / zoom-out */
+  width: 100%; max-width: var(--maxw); margin: 0 auto;
+  /* content-height hero (NOT forced to 100vh) so the page flows/blends into the
+     sections below and zoom-out reveals them, instead of one full-screen block */
+  padding: 128px clamp(20px, 3vw, 44px) 92px;
+  display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: center; gap: clamp(32px, 5vw, 96px);
 }
 .hero-copy { justify-self: start; }
 .hero-badge {
@@ -141,7 +163,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 }
 .hero-title {
   font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(50px, 6.4vw, 88px); line-height: 0.97;
+  font-size: clamp(38px, 4.8vw, 64px); line-height: 0.98;
   letter-spacing: -0.04em; margin: 0 0 20px;
 }
 .hero-title .sector {
@@ -208,7 +230,16 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 .dots { display: flex; gap: 8px; justify-content: center; }
 .dot-i { width: 8px; height: 8px; border-radius: 6px; background: rgba(16,16,16,0.16); border: none; padding: 0; cursor: pointer; transition: all .3s ease; }
 .dot-i.active { width: 22px; background: var(--ink); }
-.orb-status { margin: 0; font-size: 13px; color: var(--muted-2); }
+/* understated, greyed-out call-to-action under the orb (like Bland) */
+.agent-cta {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 6px; border: none; background: transparent; box-shadow: none;
+  color: var(--muted-2); font-size: 13.5px; font-weight: 600;
+  cursor: pointer; transition: color .15s ease;
+}
+.agent-cta svg { color: var(--muted-2); }
+.agent-cta:hover { color: var(--muted); }
+.agent-cta:hover svg { color: var(--muted); }
 
 /* ============ Languages showcase (pinned scroll) ============ */
 .langs { position: relative; height: 320vh; background: var(--bg); }
