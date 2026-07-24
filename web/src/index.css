@@ -50,8 +50,8 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 .footer .btn-primary { background: var(--white); color: var(--ink); }
 .footer .btn-primary:hover { background: #ececec; }
 
-/* ============ Nav (clean white, like the reference image) ============ */
-.nav { position: relative; z-index: 10; }
+/* ============ Nav (transparent — blends into the hero underlay) ============ */
+.nav { position: absolute; top: 0; left: 0; right: 0; z-index: 10; }
 .nav-inner {
   position: relative;
   display: flex; align-items: center;
@@ -80,9 +80,8 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 .nav-cta:hover { background: var(--blue-dk); transform: translateY(-1px); }
 
 /* ============ Hero ============ */
-.hero { position: relative; overflow: hidden; background: #ffffff; }
-/* pure white hero — gradient underlay removed */
-.hero-bg { display: none !important; }
+/* same base colour as the body so the hero fades into it with no seam */
+.hero { position: relative; overflow: hidden; background: var(--bg); }
 /* subtle cool underlay — colours follow the active bubble (--g1/--g2 set in JS) */
 .hero-bg { position: absolute; top: 0; left: 0; right: 0; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden; }
 .hero-bg .blob { position: absolute; border-radius: 50%; filter: blur(100px); will-change: transform; }
@@ -98,12 +97,37 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; font-weight: 700; font-family: 
 @keyframes vai-drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6%,4%) scale(1.12); } }
 @keyframes vai-drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-7%,-5%) scale(1.15); } }
 @keyframes vai-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+@keyframes vai-spin { to { transform: rotate(360deg); } }
+
+/* ============ Why We Are Different (integration diagram + horizon grid) ============ */
+.why-diff { position: relative; z-index: 2; padding: 20px 0 0; }
+.wd-diagram { position: relative; max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+.wd-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.wd-ring {
+  position: absolute; left: 50%; top: 58.6%; transform: translate(-50%, -50%);
+  width: 11%; aspect-ratio: 1; pointer-events: none;
+}
+.wd-ring span { position: absolute; border-radius: 50%; }
+.wd-ring-glow { inset: -34%; background: radial-gradient(circle, rgba(177,92,218,0.30), transparent 66%); filter: blur(16px); }
+.wd-ring-conic { inset: 0; background: conic-gradient(from 205deg,#8A5CF0,#B15CDA,#EC8F9E,#F0A08F,#F6C08A,#B15CDA,#8A5CF0); animation: vai-spin 14s linear infinite; }
+.wd-ring-hole { inset: 27%; background: #FCFCFC; box-shadow: inset 0 2px 10px rgba(138,92,240,0.12); }
+.wd-mesh {
+  width: 100%; height: min(360px, 26vw); display: block; margin-top: -10px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.wd-title {
+  text-align: center; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(30px, 3.6vw, 46px); letter-spacing: -0.03em; color: #1a1a1a;
+  margin: 8px 0 60px;
+}
 
 .hero-inner {
   position: relative; z-index: 2;
+  box-sizing: border-box;
   width: 100%; max-width: none; margin: 0;
-  padding: 0 clamp(20px, 3vw, 44px);
-  min-height: calc(100vh - 86px);
+  padding: 86px clamp(20px, 3vw, 44px) 0;
+  min-height: 100vh;
   display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
   align-items: center; gap: clamp(32px, 7vw, 140px);
 }
