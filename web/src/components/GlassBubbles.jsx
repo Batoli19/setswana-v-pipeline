@@ -1,12 +1,21 @@
-// Liquid-glass voice bubbles — layered construction that stays visible over
-// a transparent canvas: a saturated morphing core inside a clear glass shell,
-// with a camera-facing colour reflection + contact shadow beneath each.
-// Lit by a procedural room environment (no network fetches, demo-safe).
-import { useEffect, useMemo, useRef } from "react";
+// Liquid-glass voice carousel — the orbs live on a horizontal track and
+// physically slide when you navigate: the neighbour orb travels into the
+// centre (growing + rising) while the current one slides out to a peek.
+// Colours ride with each orb, so it reads as the orbs *moving*, not just
+// swapping colour. Lit by a procedural room env (no network fetches).
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { MeshDistortMaterial } from "@react-three/drei";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { SLIDES } from "../data/slides.js";
+
+const N = SLIDES.length;
+const SPACING = 3.5;          // world gap between adjacent orbs
+const SLOTS = [-2, -1, 0, 1, 2]; // orb pool: 2 off-screen each side feed the entry
+
+// Body colour for a given (wrapping) slide counter.
+const colorFor = (k) => SLIDES[((k % N) + N) % N].stops[3];
 
 function Env() {
   const { gl, scene } = useThree();
@@ -19,69 +28,72 @@ function Env() {
   return null;
 }
 
-// Shared soft radial alpha texture for glows/shadows.
-let radialTex = null;
-function getRadialTex() {
-  if (radialTex) return radialTex;
-  const c = document.createElement("canvas");
-  c.width = c.height = 256;
-  const g = c.getContext("2d");
-  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  grad.addColorStop(0, "rgba(255,255,255,1)");
-  grad.addColorStop(0.5, "rgba(255,255,255,0.5)");
-  grad.addColorStop(1, "rgba(255,255,255,0)");
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 256, 256);
-  radialTex = new THREE.CanvasTexture(c);
-  return radialTex;
+// Smoothly eases the animated track position toward the target counter.
+function TrackDriver({ posRef, countRef }) {
+  useFrame(() => {
+    posRef.current += (countRef.current - posRef.current) * 0.13;
+  });
+  return null;
 }
 
-function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) {
+function Orb({ slot, posRef, countRef, levelRef, seed }) {
   const group = useRef();
   const coreMat = useRef();
   const shellMat = useRef();
-  const glowMat = useRef();
-  const alphaTex = useMemo(getRadialTex, []);
-  const cur = useRef({
-    c: new THREE.Color(targetRef.current.c),
-    a: new THREE.Color(targetRef.current.a),
-    g: new THREE.Color(targetRef.current.g),
-  });
+  const kRef = useRef(null);                 // which slide-counter this orb shows
+  const curC = useRef(new THREE.Color("#ffffff"));
   const tmp = useRef(new THREE.Color());
 
   useFrame((state) => {
-    const t = targetRef.current;
-    cur.current.c.lerp(tmp.current.set(t.c), 0.09);
-    cur.current.a.lerp(tmp.current.set(t.a), 0.09);
-    cur.current.g.lerp(tmp.current.set(t.g), 0.09);
-
-    const amp = levelRef ? levelRef.current : 0;
-    if (coreMat.current) {
-      coreMat.current.color.copy(cur.current.c);
-      coreMat.current.emissive.copy(cur.current.c);
-      coreMat.current.distort = distort + amp * 0.3;
+    // First frame: seat this orb around the current counter and set its colour.
+    if (kRef.current === null) {
+      kRef.current = Math.round(countRef.current) + slot;
+      curC.current.set(colorFor(kRef.current));
     }
-    if (shellMat.current) shellMat.current.distort = distort * 0.8 + amp * 0.2;
-    if (glowMat.current) glowMat.current.color.copy(cur.current.g);
+
+    const pos = posRef.current;
+    let offset = kRef.current - pos;
+
+    // Recycle an orb that has drifted off one side to the far other side while
+    // it's hidden, so the track feels infinite. Snap its colour (it's off-screen).
+    if (offset > 2.6) { kRef.current -= SLOTS.length; curC.current.set(colorFor(kRef.current)); offset = kRef.current - pos; }
+    else if (offset < -2.6) { kRef.current += SLOTS.length; curC.current.set(colorFor(kRef.current)); offset = kRef.current - pos; }
+
+    const a = Math.abs(offset);
+    const near = Math.max(0, 1 - a);                 // 1 at centre, 0 for peeks+
+    const amp = (levelRef ? levelRef.current : 0) * near;
+
+    // Bell-shaped size: big in the centre, small at the peeks/edges.
+    const scale = 0.6 + 1.3 * Math.exp(-1.8 * offset * offset);
+    const x = offset * SPACING;
+    const y = 0.2 - 0.72 * Math.min(a, 1) + Math.sin(state.clock.elapsedTime * 0.7 + seed) * 0.06;
+    const z = -1.45 * Math.min(a, 1);
+
+    // Colour eases toward this orb's own slide (rides along with the motion).
+    curC.current.lerp(tmp.current.set(colorFor(kRef.current)), 0.12);
+
+    if (coreMat.current) {
+      coreMat.current.color.copy(curC.current);
+      coreMat.current.emissive.copy(curC.current);
+      coreMat.current.distort = 0.45 + amp * 0.3;
+    }
+    if (shellMat.current) shellMat.current.distort = 0.38 + amp * 0.2;
     if (group.current) {
-      const s = 1 + amp * 0.09;
-      group.current.scale.setScalar(s);
-      group.current.position.y =
-        position[1] + Math.sin(state.clock.elapsedTime * 0.7 + seed) * 0.07;
+      group.current.visible = a < 2.5;
+      group.current.position.set(x, y, z);
+      group.current.scale.setScalar(scale * (1 + amp * 0.08));
     }
   });
 
   return (
-    <group ref={group} position={position}>
-      {/* saturated liquid core — bright, colour-forward.
-          Geometry is radius 2.4 and the mesh scaled down so the distortion
-          noise samples a wider domain => lumpier, multi-lobe wobble. */}
-      <mesh scale={(scale * 0.9) / 2.4}>
+    <group ref={group}>
+      {/* saturated liquid core */}
+      <mesh scale={0.9 / 2.4}>
         <sphereGeometry args={[2.4, 96, 96]} />
         <MeshDistortMaterial
           ref={coreMat}
-          speed={speed}
-          distort={distort}
+          speed={1.9}
+          distort={0.45}
           transparent
           opacity={0.96}
           roughness={0.12}
@@ -90,13 +102,13 @@ function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) 
           envMapIntensity={1.2}
         />
       </mesh>
-      {/* clear glass shell with a bright rim highlight */}
-      <mesh scale={scale / 2.4}>
+      {/* clear glass shell */}
+      <mesh scale={1 / 2.4}>
         <sphereGeometry args={[2.4, 96, 96]} />
         <MeshDistortMaterial
           ref={shellMat}
-          speed={speed}
-          distort={distort * 0.85}
+          speed={1.9}
+          distort={0.38}
           transparent
           opacity={0.22}
           color="#ffffff"
@@ -112,7 +124,11 @@ function Bubble({ targetRef, seed, position, scale, distort, speed, levelRef }) 
   );
 }
 
-export default function GlassBubbles({ centerRef, leftRef, rightRef, levelRef }) {
+export default function GlassBubbles({ count, levelRef }) {
+  const countRef = useRef(count);
+  const posRef = useRef(count);
+  useEffect(() => { countRef.current = count; }, [count]);
+
   return (
     <Canvas
       flat
@@ -125,33 +141,17 @@ export default function GlassBubbles({ centerRef, leftRef, rightRef, levelRef })
       <ambientLight intensity={0.6} />
       <directionalLight position={[4, 6, 5]} intensity={1.0} />
       <pointLight position={[-3, 2, 4]} intensity={40} color="#ffffff" />
-      <Bubble
-        targetRef={centerRef}
-        seed={0}
-        position={[0, 0.2, 0]}
-        scale={1.95}
-        distort={0.47}
-        speed={1.9}
-        levelRef={levelRef}
-      />
-      {/* peek neighbours — kept fully inside the frame so they never clip
-          against the canvas edge (which reads as an ugly "boxed" cut) */}
-      <Bubble
-        targetRef={leftRef}
-        seed={2.1}
-        position={[-3.5, -0.5, -1.4]}
-        scale={0.82}
-        distort={0.44}
-        speed={1.5}
-      />
-      <Bubble
-        targetRef={rightRef}
-        seed={4.4}
-        position={[3.5, -0.5, -1.4]}
-        scale={0.78}
-        distort={0.44}
-        speed={1.6}
-      />
+      <TrackDriver posRef={posRef} countRef={countRef} />
+      {SLOTS.map((slot) => (
+        <Orb
+          key={slot}
+          slot={slot}
+          posRef={posRef}
+          countRef={countRef}
+          levelRef={levelRef}
+          seed={slot * 1.7 + 0.5}
+        />
+      ))}
     </Canvas>
   );
 }
