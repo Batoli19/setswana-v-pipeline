@@ -128,25 +128,27 @@ export default function GlassBubbles({ centerRef, leftRef, rightRef, levelRef })
       <Bubble
         targetRef={centerRef}
         seed={0}
-        position={[0, 0.25, 0]}
-        scale={2.05}
+        position={[0, 0.2, 0]}
+        scale={1.95}
         distort={0.47}
         speed={1.9}
         levelRef={levelRef}
       />
+      {/* peek neighbours — kept fully inside the frame so they never clip
+          against the canvas edge (which reads as an ugly "boxed" cut) */}
       <Bubble
         targetRef={leftRef}
         seed={2.1}
-        position={[-4.4, -0.55, -1.3]}
-        scale={1.05}
+        position={[-3.5, -0.5, -1.4]}
+        scale={0.82}
         distort={0.44}
         speed={1.5}
       />
       <Bubble
         targetRef={rightRef}
         seed={4.4}
-        position={[4.4, -0.55, -1.3]}
-        scale={0.98}
+        position={[3.5, -0.5, -1.4]}
+        scale={0.78}
         distort={0.44}
         speed={1.6}
       />
