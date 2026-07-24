@@ -137,16 +137,16 @@ export default function GlassBubbles({ centerRef, leftRef, rightRef, levelRef })
       <Bubble
         targetRef={leftRef}
         seed={2.1}
-        position={[-3.2, -0.45, -0.8]}
-        scale={1.1}
+        position={[-4.4, -0.55, -1.3]}
+        scale={1.05}
         distort={0.44}
         speed={1.5}
       />
       <Bubble
         targetRef={rightRef}
         seed={4.4}
-        position={[3.2, -0.45, -0.8]}
-        scale={1.0}
+        position={[4.4, -0.55, -1.3]}
+        scale={0.98}
         distort={0.44}
         speed={1.6}
       />
