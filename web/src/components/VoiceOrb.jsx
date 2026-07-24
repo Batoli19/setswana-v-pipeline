@@ -201,22 +201,23 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
               <path d="M8 5v14l11-7z" fill="currentColor" />
             )}
           </svg>
-          <em>{playing ? "Tap to stop" : "Tap to listen"}</em>
         </button>
       </div>
 
-      <div className="dots" aria-hidden="true">
-        {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            className={`dot-i${i === idx ? " active" : ""}`}
-            aria-label={`Voice ${i + 1}`}
-            onClick={() => go(i)}
-          />
-        ))}
-      </div>
-
-      <p className="orb-status">{status}</p>
+      <button
+        className={`agent-cta${playing ? " playing" : ""}`}
+        onClick={handlePlayClick}
+        aria-label="Click to speak with an agent"
+      >
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+          {playing ? (
+            <g fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></g>
+          ) : (
+            <path d="M8 5v14l11-7z" fill="currentColor" />
+          )}
+        </svg>
+        <span>{playing ? "Speaking… tap to stop" : "Click to speak with an agent"}</span>
+      </button>
       <audio
         ref={audioRef}
         preload="none"
