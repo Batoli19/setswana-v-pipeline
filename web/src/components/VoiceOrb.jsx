@@ -90,17 +90,7 @@ export default function VoiceOrb({ idx, setIdx, heroRef }) {
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  // Gentle auto-advance until the user interacts (never mid-voice).
-  useEffect(() => {
-    const id = setInterval(() => {
-      const audio = audioRef.current;
-      const busy = speakingRef.current || (audio && !audio.paused);
-      if (!userInteractedRef.current && !busy) {
-        setIdx((i) => (i + 1) % SLIDES.length);
-      }
-    }, 5000);
-    return () => clearInterval(id);
-  }, [setIdx]);
+  // Voices change only on manual interaction (arrows / dots) — no auto-advance.
 
   useEffect(() => () => stopAll(), []); // stop on unmount
 
