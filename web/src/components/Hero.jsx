@@ -10,7 +10,11 @@ const ArrowUpRight = () => (
 
 export default function Hero() {
   const heroRef = useRef(null);
-  const [idx, setIdx] = useState(0);
+  // Monotonic carousel counter (can go negative / past the end); the visible
+  // slide is derived by wrapping it. Keeps the orb track sliding one direction
+  // per arrow press and feeling infinite.
+  const [count, setCount] = useState(0);
+  const idx = ((count % SLIDES.length) + SLIDES.length) % SLIDES.length;
   const slide = SLIDES[idx];
   const gradient = `linear-gradient(100deg, ${slide.grad[0]}, ${slide.grad[1]})`;
 
@@ -38,7 +42,7 @@ export default function Hero() {
         </div>
 
         {/* RIGHT: liquid-glass bubble carousel */}
-        <VoiceOrb idx={idx} setIdx={setIdx} heroRef={heroRef} />
+        <VoiceOrb count={count} setCount={setCount} idx={idx} heroRef={heroRef} />
       </div>
 
       <div className="scroll-cue" aria-hidden="true">
