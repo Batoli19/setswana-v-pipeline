@@ -6,8 +6,10 @@ import CultureSection from "./components/CultureSection.jsx";
 import Footer from "./components/Footer.jsx";
 
 export default function App() {
+  // Everything lives inside one centred, rail-framed column (like Bland) so the
+  // whole site shares the same vertical edges and nothing bleeds past them.
   return (
-    <>
+    <div className="page">
       <Nav />
       <main id="top">
         <Hero />
@@ -16,6 +18,6 @@ export default function App() {
         <CultureSection />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
